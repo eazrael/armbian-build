@@ -416,6 +416,8 @@ function docker_cli_prepare_launch() {
  		"--env" "HTTP_PROXY=${HTTP_PROXY}"
 		"--env" "HTTPS_PROXY=${HTTPS_PROXY}"
 		"--env" "APT_PROXY_ADDR=${APT_PROXY_ADDR}"
+
+		"-v" "/home/cnelles/.armbian_bash_history:/root/.bash_history:rw"
 	)
 
 	# This env var is used super early (in entrypoint.sh), so set it as an env to current value.

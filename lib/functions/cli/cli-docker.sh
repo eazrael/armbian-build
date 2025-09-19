@@ -80,6 +80,8 @@ function cli_docker_run() {
 		DOCKER_ARGS+=("--env" "${env}")
 	done
 
+	DOCKER_ARGS+=("-v" "/etc/localtime:/etc/localtime:ro")
+	
 	case "${DOCKER_SUBCMD}" in
 		shell)
 			display_alert "Launching Docker shell" "docker-shell" "info"
