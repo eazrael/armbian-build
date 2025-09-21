@@ -4,7 +4,7 @@ BOARDFAMILY="msm8909"          # frei wählbar, muss zu sources/<family>.conf pa
 LINUXFAMILY="msm8909"          # dito
 
 RELEASE="bookworm"
-BRANCH="vendor"
+BRANCH="snapmakerj1"
 
 # U-Boot bauen wir nicht (lk2nd übernimmt die Rolle des First/Second Stage)
 UBOOT_CONFIGURE="no"
@@ -45,10 +45,13 @@ WIREGUARD="no"
 #FIXED_IMAGE_SIZE="7456"
 #ROOTFS_TYPE="f2fs"
 ROOTFS_TYPE="ext4"
+
+SRC_EXTLINUX="yes"
 BOOTSIZE="256"
 BOOTFS_TYPE="ext2"
 AUFS="no"
-COMPRESS_OUTPUTIMAGE="sha,xz"
+# for testing no compression
+COMPRESS_OUTPUTIMAGE="sha,none"
 IMAGE_XZ_COMPRESSION_RATIO=9
 
 # change "Armbian-unofficial
