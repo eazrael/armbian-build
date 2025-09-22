@@ -10,12 +10,12 @@ BRANCH="snapmakerj1"
 UBOOT_CONFIGURE="no"
 BOOTCONFIG="none"
 
-KERNEL_CONFIGURE="no"
-KERNELSOURCE='https://github.com/msm8916-mainline/linux.git'
-KERNELBRANCH='tag:v6.12.1-msm8916'        # alternativ: branch:<name> oder tag:<vX.Y.Z>
-KERNEL_MAJOR_MINOR='6.12'
-KERNEL_TARGET="vendor"
-KERNEL_GIT="shallow"
+# KERNEL_CONFIGURE="no"
+# KERNELSOURCE='https://github.com/msm8916-mainline/linux.git'
+# KERNELBRANCH='tag:v6.12.1-msm8916'        # alternativ: branch:<name> oder tag:<vX.Y.Z>
+# KERNEL_MAJOR_MINOR='6.12'
+KERNEL_TARGET="snapmakerj1"
+# KERNEL_GIT="shallow"
 
 # Keine Armbian-Patches einmischen
 KERNELPATCHDIR=''
@@ -29,7 +29,7 @@ ARCH="armhf"
 # Rockchip RK3328 in Artillery3D X4 Pro/Plus 3D-printer
 # Makerbase MKS based board
 # Quad core eMMC USB3 WIFI
-VENDOR="Armbian"
+# NDOR="Armbian"
 BOARD_MAINTAINER="eazrael"
 BUILD_MINIMAL="no"
 #KERNEL_TARGET="current,edge"
@@ -53,6 +53,8 @@ AUFS="no"
 # for testing no compression
 COMPRESS_OUTPUTIMAGE="sha,none"
 IMAGE_XZ_COMPRESSION_RATIO=9
+BOOT_FDT_FILE="dtb/snapmakerj1.dtb"
+
 
 # change "Armbian-unofficial
 # No wireguard in a printer...

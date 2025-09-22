@@ -1,0 +1,280 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include "qcom-msm8909-pm8909.dtsi"  
+/* /include/ "qcom-msm8909-pm8909.dtsi" */
+
+/ {
+    #address-cells = <1>;
+	#size-cells = <1>;
+	model = "Snapmaker J1 Display v2";
+    compatible = "qcom,msm8909-mtp", "qcom,msm8909", "qcom,mtp";
+    qcom,msm-id   = <0xF5 0>;               // 245
+    qcom,board-id = <0x10008 0x0>; // target_id, soc_version
+    qcom,pmic-id  = <0x1010d 0 0 0>;
+    
+    chosen {
+        #address-cells = <1>;
+		#size-cells = <1>;
+        bootargs = "console=ttyMSM0,115200n8 loglevel=8 ignore_loglevel clk_ignore_unused memblock=debug debug log_buf_len=1M lk2nd.pass-simplefb=autorefresh aus_dts";
+		stdout-path = "serial0:115200n8";
+
+        fb0: framebuffer@83200000 {
+            compatible = "simple-framebuffer";
+            //reg = <0x83200000 (720 * 1280 * 3)>;  // 720 * 1280 * 3 = 2,764,800 = 0x002A3000
+            // original DTS uses 12MB, defined in &framebuffer_reserved
+            // memory-region is prefered and overrides reg, but without get warnings
+            // reg = <0x83200000 0x00c00000>;
+            memory-region = <&fb0_mem>;
+            width = <720>;
+            height = <1280>;
+            stride = <2160>;
+            format = "r8g8b8";
+            status = "okay";
+
+            power-domains = <&gcc MDSS_GDSC>;
+
+			clocks = <&gcc GCC_MDSS_AHB_CLK>,
+				 <&gcc GCC_MDSS_AXI_CLK>,
+				 <&gcc GCC_MDSS_VSYNC_CLK>,
+				 <&gcc GCC_MDSS_MDP_CLK>,
+				 <&gcc GCC_MDSS_BYTE0_CLK>,
+				 <&gcc GCC_MDSS_PCLK0_CLK>,
+				 <&gcc GCC_MDSS_ESC0_CLK>;
+		    };
+        };
+
+    aliases {
+        serial0 = &blsp_uart1;   // DEBUG-Port = ttyMSM0
+        serial1 = &blsp_uart2;
+	};
+    
+	memory@80000000 {
+		device_type = "memory";
+		/* We expect the bootloader to fill in the reg */
+		reg = <0x80000000 0x40000000>;
+	};
+
+    reserved-memory {
+        ranges;
+
+        /*
+        /delete-node/ mba@8dc00000; 
+        /delete-node/ rmtfs@87c00000;
+        /delete-node/ mpss@88000000; */
+
+        cma_region: linux,cma@88000000 {
+            compatible = "shared-dma-pool";
+            reusable;
+            #reg = <0x88000000 0x04000000>;
+            alignment = <0x00800000>;
+            linux,cma-default;
+        };
+
+        fb0_mem: cont-splash@83200000 {
+            // 12 MB as framebuffer
+            reg = <0x83200000 (4*1024*1024)>;
+            no-map;
+        };         
+    };
+     
+    soc@0 {
+        /* /delete-node/ mpss@88000000;     */
+        /delete-node/ i2c@78b5000;
+        /delete-node/ spi@78b5000; 
+        /delete-node/ i2c@78b6000; 
+        /delete-node/ spi@78b6000;
+        /delete-node/ i2c@78b7000; 
+        /delete-node/ spi@78b7000; 
+        /delete-node/ spi@78b8000;
+        /delete-node/ spi@78b9000; 
+        /delete-node/ i2c@78ba000;
+        /delete-node/ spi@78ba000;
+        };
+    
+    backlight: backlight {
+        compatible = "pwm-backlight";
+        pwms = <&pm8909_pwm 0 50000>;     // controller phandle, channel, period (ns)
+        brightness-levels = <0 16 32 64 128 255>;
+        default-brightness-level = <3>;
+        status = "okay";
+		/* 
+        pwms = <&pm8909_pwm 0 100000>;
+
+		brightness-levels = <0 255>;
+		num-interpolated-steps = <255>;
+		default-brightness-level = <255>;        
+        */
+    };
+};
+
+&blsp_uart1 {
+    status = "okay";
+    /delete-property/ dmas;
+    /delete-property/ dma-names;
+};
+
+&blsp_uart2 {
+    status = "okay";
+    /delete-property/ dmas;
+    /delete-property/ dma-names;
+
+};
+
+&blsp_i2c5 {
+    status = "okay";
+    
+    touchscreen@14 {
+        compatible = "goodix,gt1151";        
+        reg = <0x14>;
+
+        interrupt-parent = <&tlmm>;
+        interrupts  = <13 IRQ_TYPE_LEVEL_LOW>;
+        irq-gpios   = <&tlmm 13 GPIO_ACTIVE_LOW>;
+        reset-gpios = <&tlmm 12 GPIO_ACTIVE_HIGH>;  /* ggf. LOW je nach Board */
+        power-gpios = <&tlmm 23 GPIO_ACTIVE_HIGH>;
+        VDDIO-supply = <&pm8909_l6>;
+        touchscreen-size-x = <720>;
+        touchscreen-size-y = <1280>;
+        
+        status = "okay";
+    };
+};
+
+
+&usb {
+    status ="okay";
+};
+
+&usb_hs_phy {
+	extcon = <&pm8909_usbin>;
+};
+
+&pm8909_usbin {
+    status = "disabled";
+};
+
+
+&sdhc_1      { status = "okay"; };     
+&sdhc_2      { status = "disabled"; };     // zweite SD, falls nicht benutzt
+&spmi_bus { 
+    status = "okay"; 
+    #address-cells = <1>;
+};         // kommt aus pm8909.dtsi; lassen
+&hexagon_smsm {status = "okay"; };
+&wcnss_smsm {status = "okay"; }; 
+
+&wcnss {
+    status = "okay"; 
+};
+
+
+&wcnss_iris {
+    //compatible = "qcom,wcn3680";
+    compatible = "qcom,wcn3660";
+    status = "okay"; 
+};
+
+&wcnss_bt {
+    status = "okay"; 
+};
+
+&smd_rpm_regulators {
+    s2 {
+		regulator-min-microvolt = <1850000>;
+		regulator-max-microvolt = <1850000>;
+    };
+    l1 {
+		regulator-min-microvolt = <1000000>;
+		regulator-max-microvolt = <1000000>;
+    };
+    l2 {
+		regulator-min-microvolt = <1200000>;
+		regulator-max-microvolt = <1200000>;
+    };
+    // l3 {
+	// 	regulator-min-microvolt = <500000>;
+	// 	regulator-max-microvolt = <1350000>;
+    // };
+    l4 {
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+    };
+    l5 {
+		regulator-min-microvolt = <1200000>;
+		regulator-max-microvolt = <1800000>;
+	};
+    l6 {
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;        
+    };
+
+    l7 {
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+	};
+
+	l8 {
+		regulator-min-microvolt = <2850000>;
+		regulator-max-microvolt = <2900000>;
+	};
+
+	l9 {
+		regulator-min-microvolt = <2900000>;
+		regulator-max-microvolt = <3300000>;
+	};
+
+    l10 {
+		regulator-min-microvolt = <1225000>;
+		regulator-max-microvolt = <1300000>;
+	};
+
+    l11 {
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <2950000>;
+	};
+
+    l12 {
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <2950000>;
+	};
+
+    l13 {
+		regulator-min-microvolt = <3075000>;
+		regulator-max-microvolt = <3075000>;
+	};
+
+    l14 {
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <3000000>;
+	};
+
+    l15 {
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <3000000>;
+	};
+
+    l17 {
+		regulator-min-microvolt = <2800000>;
+		regulator-max-microvolt = <3000000>;
+	};
+
+    l18 {
+		regulator-min-microvolt = <2700000>;
+		regulator-max-microvolt = <2700000>;
+	};
+
+};
+    
+&blsp_i2c5_default {
+    bias-pull-up; 
+};
+
+&blsp_i2c5_sleep {
+    bias-pull-down; 
+};
+
+&pm8909_pwm {
+    status = "okay"; 
+};
