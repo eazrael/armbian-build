@@ -47,27 +47,37 @@ WIREGUARD="no"
 ROOTFS_TYPE="ext4"
 
 SRC_EXTLINUX="yes"
-BOOTSIZE="256"
+declare -g EXTLINUX_UINITRD=no
+# TODO hardcoded, derive 
+SRC_CMDLINE="systemd.loglevel=info 8250.nr_uarts=0 fbcon=rotate:3 aus_armbian"
+NAME_INITRD=initrd.img-6.12.1-snapmakerj1-msm8909
+BOOTSIZE="120"
 BOOTFS_TYPE="ext2"
 AUFS="no"
 # for testing no compression
 COMPRESS_OUTPUTIMAGE="sha,none"
 IMAGE_XZ_COMPRESSION_RATIO=9
-BOOT_FDT_FILE="dtb/snapmakerj1.dtb"
+BOOT_FDT_FILE="snapmakerj1.dtb"
 
 
 # change "Armbian-unofficial
 # No wireguard in a printer...
 #PACKAGE_LIST_BOARD="xterm file armbian-config iotop-c"
-PACKAGE_LIST_BOARD="xterm file iotop-c i2c-tools spi-tools"
+PACKAGE_LIST_BOARD="xterm file iotop-c i2c-tools spi-tools linux-cpupower"
 PACKAGE_LIST_BOARD_REMOVE="linux-dtb-current-rockchip64"
 REPOSITORY_INSTALL="armbian-config armbian-firmware"
 INSTALL_HEADERS="yes" # install kernel headers package
 NETWORKING_STACK="network-manager"
 
-function post_family_tweaks__artillerxy_some_tweaks() {
+function post_family_tweaks__msm8909_some_tweaks() {
     display_alert "${BOARD}"  "Disabling ramlog" "info"
     chroot_sdcard systemctl disable armbian-ramlog
+    # Masking is the cleanest way of prevent this service, but then armbian-build fails
+    # chroot_sdcard systemctl mask armbian-ramlog.service
+    chroot_sdcard rm -f /lib/systemd/system/armbian-ramlog.service
+
+    display_alert "${BOARD}"  "Disabling zram" "info"
+    chroot_sdcard sed -i 's/^ENABLED=true$/ENABLED=false/' /etc/default/armbian-zram-config
 
 #    display_alert "${BOARD}"  "Disabling default device trees" "info"
 #    chroot_sdcard apt-mark hold linux-dtb-current-rockchip64

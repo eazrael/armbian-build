@@ -17,13 +17,14 @@
     chosen {
         #address-cells = <1>;
 		#size-cells = <1>;
-        bootargs = "console=ttyMSM0,115200n8 loglevel=8 ignore_loglevel clk_ignore_unused memblock=debug debug log_buf_len=1M lk2nd.pass-simplefb=autorefresh aus_dts";
+        bootargs = "console=ttyMSM0,115200n8 loglevel=8 ignore_loglevel clk_ignore_unused log_buf_len=1M lk2nd.pass-simplefb=autorefresh aus_dts";
 		stdout-path = "serial0:115200n8";
 
         fb0: framebuffer@83200000 {
             compatible = "simple-framebuffer";
             //reg = <0x83200000 (720 * 1280 * 3)>;  // 720 * 1280 * 3 = 2,764,800 = 0x002A3000
             // original DTS uses 12MB, defined in &framebuffer_reserved
+            // lk2nd sets 10MiB
             // memory-region is prefered and overrides reg, but without get warnings
             // reg = <0x83200000 0x00c00000>;
             memory-region = <&fb0_mem>;
@@ -57,30 +58,29 @@
 	};
 
     reserved-memory {
-        ranges;
+        // ranges;
 
-        /*
-        /delete-node/ mba@8dc00000; 
         /delete-node/ rmtfs@87c00000;
-        /delete-node/ mpss@88000000; */
+        /delete-node/ mpss@88000000;
+        /delete-node/ mba@8dc00000; 
 
-        cma_region: linux,cma@88000000 {
+        cma_region: linux,cma {
             compatible = "shared-dma-pool";
             reusable;
-            #reg = <0x88000000 0x04000000>;
+            // just in case, currently nothing is using this.
+            size = <(8 * 1024 * 1024)>;
             alignment = <0x00800000>;
             linux,cma-default;
         };
 
         fb0_mem: cont-splash@83200000 {
-            // 12 MB as framebuffer
-            reg = <0x83200000 (4*1024*1024)>;
+            // 10 MiB as framebuffer
+            reg = <0x83200000 (10 * 1024 * 1024)>;
             no-map;
         };         
     };
      
     soc@0 {
-        /* /delete-node/ mpss@88000000;     */
         /delete-node/ i2c@78b5000;
         /delete-node/ spi@78b5000; 
         /delete-node/ i2c@78b6000; 
@@ -91,6 +91,7 @@
         /delete-node/ spi@78b9000; 
         /delete-node/ i2c@78ba000;
         /delete-node/ spi@78ba000;
+        /delete-node/ remoteproc@4080000;
         };
     
     backlight: backlight {
@@ -107,7 +108,33 @@
 		default-brightness-level = <255>;        
         */
     };
+
+    usb_vbus_regulator: regulator-ts {
+		compatible = "regulator-fixed";
+		regulator-name = "usb_vbus_regulator";
+		// regulator-min-microvolt = <1800000>;
+		// regulator-max-microvolt = <1800000>;
+
+		gpio = <&tlmm 8 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+
+		pinctrl-0 = <&usb_vbus_default>;
+		pinctrl-names = "default";
+	};
+
 };
+
+&tlmm {
+    usb_vbus_default: usb_vbus_default-state {
+		vdd-pins {
+			pins = "gpio8";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-disable;
+		};
+	};
+};
+
 
 &blsp_uart1 {
     status = "okay";
@@ -144,15 +171,23 @@
 
 
 &usb {
-    status ="okay";
+    ///delete-property/ phys;
+    //not deleting this property will trigger a cycle warning, but it will work
+    // IMHO preferable to redefine parts of the USB configuration
+    
+    vbus-supply = <&usb_vbus_regulator>;
+    extcon = <&pm8909_usbin>;
+    dr_mode = "otg";
+    status = "okay";
 };
 
 &usb_hs_phy {
 	extcon = <&pm8909_usbin>;
+    status = "okay";
 };
 
 &pm8909_usbin {
-    status = "disabled";
+    status = "okay";
 };
 
 
