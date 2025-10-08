@@ -3,7 +3,7 @@ BOARD_NAME="Snapmaker J1"
 BOARDFAMILY="msm8909"          # frei wählbar, muss zu sources/<family>.conf passen
 LINUXFAMILY="msm8909"          # dito
 
-RELEASE="bookworm"
+RELEASE="trixie"
 BRANCH="snapmakerj1"
 
 # U-Boot bauen wir nicht (lk2nd übernimmt die Rolle des First/Second Stage)
