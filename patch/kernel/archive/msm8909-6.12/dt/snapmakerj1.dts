@@ -177,7 +177,7 @@
     
     vbus-supply = <&usb_vbus_regulator>;
     extcon = <&pm8909_usbin>;
-    dr_mode = "otg";
+    dr_mode = "host";
     status = "okay";
 };
 

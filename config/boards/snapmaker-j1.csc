@@ -43,7 +43,6 @@ WIREGUARD="no"
 
 #Settings for the internal emmc space
 #FIXED_IMAGE_SIZE="7456"
-#ROOTFS_TYPE="f2fs"
 ROOTFS_TYPE="ext4"
 
 SRC_EXTLINUX="yes"
@@ -56,14 +55,14 @@ BOOTFS_TYPE="ext2"
 AUFS="no"
 # for testing no compression
 COMPRESS_OUTPUTIMAGE="sha,none"
-IMAGE_XZ_COMPRESSION_RATIO=9
+IMAGE_XZ_COMPRESSION_RATIO=1
 BOOT_FDT_FILE="snapmakerj1.dtb"
 
 
 # change "Armbian-unofficial
 # No wireguard in a printer...
 #PACKAGE_LIST_BOARD="xterm file armbian-config iotop-c"
-PACKAGE_LIST_BOARD="xterm file iotop-c i2c-tools spi-tools linux-cpupower"
+PACKAGE_LIST_BOARD="xterm file iotop-c i2c-tools spi-tools linux-cpupower openocd moreutils"
 PACKAGE_LIST_BOARD_REMOVE="linux-dtb-current-rockchip64"
 REPOSITORY_INSTALL="armbian-config armbian-firmware"
 INSTALL_HEADERS="yes" # install kernel headers package

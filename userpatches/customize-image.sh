@@ -20,6 +20,10 @@ BUILD_DESKTOP=$4
 echo Patching image
 set -x
 # just copy the files 
+#ls -al /
+#ls -al /boot
+#mount
+echo "# This is just a dummy file, lk2nd does not support ambianEnv.txt" > /boot/armbianEnv.txt
 cp -rf /tmp/overlay/* /
 
 Main() {
